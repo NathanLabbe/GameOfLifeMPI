@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <unistd.h>
+#include </usr/include/mpi/mpi.h>
 
 int N = 32;
 int itMax = 20;
