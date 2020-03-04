@@ -330,9 +330,10 @@ void print(unsigned int *world)
 // main
 int main(int argc, char *argv[])
 {
-   int it, change, my_rank, comm_size;
+   int it, change, my_rank, comm_size, startIndex, endIndex, loc;
    unsigned int *world1, *world2;
    unsigned int *worldaux;
+   unsigned int *tmpTorus;
 
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -347,22 +348,64 @@ int main(int argc, char *argv[])
    }
 
    // getting started
-   if (my_rank == 0){
-   //world1 = initialize_dummy();
-   //world1 = initialize_random();
-   world1 = initialize_glider();
-   //world1 = initialize_small_exploder();
-   world2 = allocate();
-   print(world1);
+   if (my_rank == 0)
+   {
+      //world1 = initialize_dummy();
+      //world1 = initialize_random();
+      world1 = initialize_glider();
+      //world1 = initialize_small_exploder();
+   }
+   else
+   {
+      world1 = allocate();
+   }
+   MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Bcast(world1, N * N, MPI_INT, 0, MPI_COMM_WORLD);
+   MPI_Barrier(MPI_COMM_WORLD);
 
+   world2 = allocate();
+   if (my_rank == 0)
+   {
+      print(world1);
+   }
+
+   MPI_Barrier(MPI_COMM_WORLD);
+   loc = N / comm_size;
+   startIndex = my_rank * loc;
+   endIndex = (my_rank + 1) * loc;
+   MPI_Barrier(MPI_COMM_WORLD);
+
+   exit(1);
    it = 0;
    change = 1;
    while (change && it < itMax)
    {
-      change = newgeneration(world1, world2, 0, N);
+      change = newgeneration(world1, world2, startIndex, endIndex);
       worldaux = world1;
       world1 = world2;
       world2 = worldaux;
+
+      for(int i=0; i< comm_size; i++){
+         if(i==0){
+            if(my_rank==0){
+               MPI_Send(world1+(my_rank-N),loc,MPI_INT,1,0,MPI_COMM_WORLD);
+            }else if(my_rank>0 && my_rank<comm_size-1){
+                  MPI_Send(world1+(my_rank-N),loc,MPI_INT,1,0,MPI_COMM_WORLD);
+                  MPI_Recv();
+            }else{
+               MPI_Recv();
+            }
+         }
+      }
+      //tmpTorus = calloc(N*N/comm_size, sizeof(unsigned int));
+      //for(int i =; i<)
+      /*
+
+      if(my_rank!=0){
+         MPI_Send()
+      }
+*/
+
       print(world1);
       it++;
    };
