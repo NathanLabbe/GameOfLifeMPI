@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-   if (comm_size % N != 0)
+   if (N % comm_size != 0)
    {
       if (my_rank == 0)
       {
@@ -347,6 +347,7 @@ int main(int argc, char *argv[])
    }
 
    // getting started
+   if (my_rank == 0){
    //world1 = initialize_dummy();
    //world1 = initialize_random();
    world1 = initialize_glider();
