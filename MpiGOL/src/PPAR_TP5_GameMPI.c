@@ -335,6 +335,7 @@ int main(int argc, char *argv[])
    unsigned int *worldaux;
    unsigned int *tmpTorus;
 
+   MPI_Datatype stype;
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -375,7 +376,6 @@ int main(int argc, char *argv[])
    endIndex = (my_rank + 1) * loc;
    MPI_Barrier(MPI_COMM_WORLD);
 
-   exit(1);
    it = 0;
    change = 1;
    while (change && it < itMax)
@@ -385,18 +385,23 @@ int main(int argc, char *argv[])
       world1 = world2;
       world2 = worldaux;
 
-      for(int i=0; i< comm_size; i++){
-         if(i==0){
-            if(my_rank==0){
-               MPI_Send(world1+(my_rank-N),loc,MPI_INT,1,0,MPI_COMM_WORLD);
-            }else if(my_rank>0 && my_rank<comm_size-1){
-                  MPI_Send(world1+(my_rank-N),loc,MPI_INT,1,0,MPI_COMM_WORLD);
-                  MPI_Recv();
-            }else{
-               MPI_Recv();
-            }
-         }
-      }
+      MPI_Send(&world1[code(my_rank * loc, 0, 0, 0)], N, MPI_INT, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD);
+      MPI_Send(&world1[code((my_rank + 1) * loc - N, 0, 0, 0)], N, MPI_INT, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD);
+
+      MPI_Status status;
+      MPI_Recv(&world1[code(my_rank * loc, 0, 0, 0)], N, MPI_INT, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD, &status);
+      MPI_Recv(&world1[code((my_rank + 1) * loc - N, 0, 0, 0)], N, MPI_INT, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD, &status);
+
+      MPI_Barrier(MPI_COMM_WORLD);
+
+      /*MPI_Type_vector(100, 1, 150, MPI_INT, &stype);
+      MPI_Type_commit(&stype);
+       MPI_Gatherv( sendarray, 1, stype, rbuf, rcounts, displs, MPI_INT, 
+                                                             root, comm); */
+
+      MPI_Gather(&world1[code(my_rank * loc, 0, 0, 0)], N, MPI_INT, world1, N, MPI_INT, 0, MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
+      exit(1);
       //tmpTorus = calloc(N*N/comm_size, sizeof(unsigned int));
       //for(int i =; i<)
       /*
