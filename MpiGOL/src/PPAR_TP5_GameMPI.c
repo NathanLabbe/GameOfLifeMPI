@@ -330,15 +330,27 @@ void print(unsigned int *world)
 // main
 int main(int argc, char *argv[])
 {
-   int it, change;
+   int it, change, my_rank, comm_size;
    unsigned int *world1, *world2;
    unsigned int *worldaux;
+
+   MPI_Init(&argc, &argv);
+   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+   if (comm_size % N != 0)
+   {
+      if (my_rank == 0)
+      {
+         printf("The World Size is NOT divisible by the number of processor\n");
+      }
+      exit(1);
+   }
 
    // getting started
    //world1 = initialize_dummy();
    //world1 = initialize_random();
-   //world1 = initialize_glider();
-   world1 = initialize_small_exploder();
+   world1 = initialize_glider();
+   //world1 = initialize_small_exploder();
    world2 = allocate();
    print(world1);
 
