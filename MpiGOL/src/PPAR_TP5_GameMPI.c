@@ -296,7 +296,7 @@ void cls()
    int i;
    for (i = 0; i < 10; i++)
    {
-      fprintf(stdout, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+     // fprintf(stdout, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
    }
 }
 
@@ -330,12 +330,10 @@ void print(unsigned int *world)
 // main
 int main(int argc, char *argv[])
 {
-   int it, change, my_rank, comm_size, startIndex, endIndex, loc;
+   int it, change,changeGlob, my_rank, comm_size, startIndex, endIndex, loc;
    unsigned int *world1, *world2;
    unsigned int *worldaux;
-   unsigned int *tmpTorus;
 
-   MPI_Datatype stype;
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -361,14 +359,15 @@ int main(int argc, char *argv[])
       world1 = allocate();
    }
    MPI_Barrier(MPI_COMM_WORLD);
-   MPI_Bcast(world1, N * N, MPI_INT, 0, MPI_COMM_WORLD);
+   MPI_Bcast(world1, N * N, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
    MPI_Barrier(MPI_COMM_WORLD);
 
    world2 = allocate();
-   if (my_rank == 0)
+   if (my_rank ==0)
    {
       print(world1);
    }
+
 
    MPI_Barrier(MPI_COMM_WORLD);
    loc = N / comm_size;
@@ -380,28 +379,47 @@ int main(int argc, char *argv[])
    change = 1;
    while (change && it < itMax)
    {
+
       change = newgeneration(world1, world2, startIndex, endIndex);
+      
+
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Reduce(&change,&changeGlob,1,MPI_INT,MPI_LOR,0,MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
+
+      if(my_rank==0){
+         for(int i=1; i< comm_size;i++){
+            MPI_Send(&changeGlob,1,MPI_INT,i,0,MPI_COMM_WORLD);
+         }
+      }else{
+         MPI_Status status;
+         MPI_Recv(&change,1,MPI_INT,0,0,MPI_COMM_WORLD,&status);
+      }
+
+      MPI_Barrier(MPI_COMM_WORLD);
       worldaux = world1;
       world1 = world2;
       world2 = worldaux;
+      MPI_Barrier(MPI_COMM_WORLD);
 
-      MPI_Send(&world1[code(my_rank * loc, 0, 0, 0)], N, MPI_INT, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD);
-      MPI_Send(&world1[code((my_rank + 1) * loc - N, 0, 0, 0)], N, MPI_INT, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD);
+      MPI_Send(&(world1[code(my_rank * loc, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD);
+      MPI_Send(&(world1[code((my_rank + 1) * loc - 1, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
 
       MPI_Status status;
-      MPI_Recv(&world1[code(my_rank * loc, 0, 0, 0)], N, MPI_INT, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD, &status);
-      MPI_Recv(&world1[code((my_rank + 1) * loc - N, 0, 0, 0)], N, MPI_INT, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD, &status);
+      MPI_Recv(&(world1[code(my_rank * loc, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD, &status);
+      MPI_Recv(&(world1[code((my_rank + 1) * loc - 1, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD, &status);
 
       MPI_Barrier(MPI_COMM_WORLD);
+      
 
       /*MPI_Type_vector(100, 1, 150, MPI_INT, &stype);
       MPI_Type_commit(&stype);
        MPI_Gatherv( sendarray, 1, stype, rbuf, rcounts, displs, MPI_INT, 
                                                              root, comm); */
-
-      MPI_Gather(&world1[code(my_rank * loc, 0, 0, 0)], N, MPI_INT, world1, N, MPI_INT, 0, MPI_COMM_WORLD);
       MPI_Barrier(MPI_COMM_WORLD);
-      exit(1);
+      MPI_Gather(&(world1[code(my_rank * loc, 0, 0, 0)]), N*loc, MPI_UNSIGNED, &world1,N*loc, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
       //tmpTorus = calloc(N*N/comm_size, sizeof(unsigned int));
       //for(int i =; i<)
       /*
@@ -410,11 +428,13 @@ int main(int argc, char *argv[])
          MPI_Send()
       }
 */
-
+   if(my_rank==0){
+      printf("It : %d", it);
       print(world1);
+   }
       it++;
    };
-
+   MPI_Finalize();
    // ending
    free(world1);
    free(world2);
