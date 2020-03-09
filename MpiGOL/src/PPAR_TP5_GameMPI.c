@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <unistd.h>
 #include </usr/include/mpi/mpi.h>
 
 int N = 32;
@@ -425,7 +424,6 @@ int main(int argc, char *argv[])
       }
 */
    if(my_rank==0){
-      printf("It : %d", it);
       print(world1);
    }
       it++;
