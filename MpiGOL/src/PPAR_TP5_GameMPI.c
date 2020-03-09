@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
        MPI_Gatherv( sendarray, 1, stype, rbuf, rcounts, displs, MPI_INT, 
                                                              root, comm); */
       MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Gather(&(world1[code(my_rank * loc, 0, 0, 0)]), N*loc, MPI_UNSIGNED, &world1,N*loc, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+      MPI_Gather(&(world1[code(my_rank * loc, 0, 0, 0)]), N*loc, MPI_UNSIGNED, world1,N*loc, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
       MPI_Barrier(MPI_COMM_WORLD);
       //tmpTorus = calloc(N*N/comm_size, sizeof(unsigned int));
       //for(int i =; i<)
