@@ -259,13 +259,9 @@ short newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int 
          cell = read_cell(x, y, 0, 0, world1);
          if (cell != 0)
          {
-            if (nn < 2 || nn > 3)
+            if (nn == 2 || nn == 3)
             {
-               change = 1;
-               write_cell(x, y, 0, world2);
-            }
-            else
-            {
+               
                write_cell(x, y, cell, world2);
             }
          }
@@ -273,7 +269,7 @@ short newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int 
          {
             if (nn == 3)
             {
-               if (n1 == 2)
+               if (n1 > n2)
                {
                   write_cell(x, y, 1, world2);
                }
@@ -380,7 +376,7 @@ int main(int argc, char *argv[])
    while (change && it < itMax)
    {
 
-      change = newgeneration(world1, world2, startIndex, endIndex);
+      change = newgeneration(world1, world2, startIndex*N, endIndex*N);
       
 
       MPI_Barrier(MPI_COMM_WORLD);
@@ -418,7 +414,7 @@ int main(int argc, char *argv[])
        MPI_Gatherv( sendarray, 1, stype, rbuf, rcounts, displs, MPI_INT, 
                                                              root, comm); */
       MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Gather(&(world1[code(my_rank * loc, 0, 0, 0)]), N*loc, MPI_UNSIGNED, world1,N*loc, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+      MPI_Gather(&(world1[code(my_rank * loc, 0, 0, 0)]), N*loc, MPI_UNSIGNED, world2,N*loc, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
       MPI_Barrier(MPI_COMM_WORLD);
       //tmpTorus = calloc(N*N/comm_size, sizeof(unsigned int));
       //for(int i =; i<)
