@@ -14,7 +14,7 @@
 #include <time.h>
 
 int N = 32;
-int itMax = 20;
+int itMax = 100;
 
 // allocation only
 unsigned int *allocate()
@@ -344,10 +344,10 @@ int main(int argc, char *argv[])
       worldaux = world1;
       world1 = world2;
       world2 = worldaux;
-      print(world1);
+      //print(world1);
       it++;
    };
-
+   print(world1);
    // ending
    free(world1);
    free(world2);

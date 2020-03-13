@@ -12,5 +12,5 @@ clean :
 	mkdir bin
 
 test :
-	mpirun -np 4 ./bin/Shortening
+	mpirun -np 2 ./bin/Shortening
 

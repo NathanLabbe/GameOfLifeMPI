@@ -15,7 +15,7 @@
 #include </usr/include/mpi/mpi.h>
 
 int N = 32;
-int itMax = 20;
+int itMax = 100;
 
 // allocation only
 unsigned int *allocate()
@@ -230,12 +230,11 @@ void neighbors(int x, int y, unsigned int *world, int *nn, int *n1, int *n2)
 };
 
 // computing a new generation
-short newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int xend)
+void newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int xend)
 {
    int x, y;
    int nn, n1, n2;
    unsigned int cell;
-   short change = 0;
 
    // cleaning destination world
    for (x = 0; x < N; x++)
@@ -277,12 +276,10 @@ short newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int 
                {
                   write_cell(x, y, 2, world2);
                }
-               change = 1;
             }
          }
       };
    };
-   return change;
 };
 
 // cleaning the screen
@@ -325,8 +322,7 @@ void print(unsigned int *world)
 // main
 int main(int argc, char *argv[])
 {
-   int it, change, my_rank, comm_size, startIndex, endIndex, loc;
-   //int  changeGlob;
+   int it, my_rank, comm_size, startIndex, endIndex, loc;
    unsigned int *world1, *world2;
    unsigned int *worldaux;
 
@@ -372,24 +368,10 @@ int main(int argc, char *argv[])
    startIndex = my_rank * loc;
    endIndex = (my_rank + 1) * loc;
    it = 0;
-   change = 1;
-   while (/*change &&*/ it < itMax)
+   while ( it < itMax)
    {
 
-      change = newgeneration(world1, world2, startIndex, endIndex);
-
-      /*MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Reduce(&change,&changeGlob,1,MPI_UNSIGNED,MPI_LOR,0,MPI_COMM_WORLD);
-      MPI_Barrier(MPI_COMM_WORLD);
-
-      if(my_rank==0){
-         for(int i=1; i< comm_size;i++){
-            MPI_Send(&changeGlob,1,MPI_UNSIGNED,i,0,MPI_COMM_WORLD);
-         }
-      }else{
-         MPI_Status status;
-         MPI_Recv(&change,1,MPI_UNSIGNED,0,0,MPI_COMM_WORLD,&status);
-      }*/
+     newgeneration(world1, world2, startIndex, endIndex);
 
       MPI_Barrier(MPI_COMM_WORLD);
       worldaux = world1;
