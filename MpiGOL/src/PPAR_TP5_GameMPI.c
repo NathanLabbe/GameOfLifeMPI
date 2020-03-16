@@ -250,9 +250,6 @@ void newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int x
    {
       for (y = 0; y < N; y++)
       {
-         //
-         // to be completed
-         //
          neighbors(x, y, world1, &nn, &n1, &n2);
          cell = read_cell(x, y, 0, 0, world1);
          if (cell != 0)
@@ -329,6 +326,7 @@ int main(int argc, char *argv[])
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+
    //Verify if The world is divisible by the number of Processors
    if (N % comm_size != 0)
    {
@@ -344,8 +342,8 @@ int main(int argc, char *argv[])
    {
       //world1 = initialize_dummy();
       //world1 = initialize_random();
-      //world1 = initialize_glider();
-      world1 = initialize_small_exploder();
+      world1 = initialize_glider();
+      //world1 = initialize_small_exploder();
    }
    else
    {
@@ -368,12 +366,12 @@ int main(int argc, char *argv[])
    startIndex = my_rank * loc;
    endIndex = (my_rank + 1) * loc;
    it = 0;
-   while ( it < itMax)
+   while (it < itMax)
    {
 
-     newgeneration(world1, world2, startIndex, endIndex);
+      newgeneration(world1, world2, startIndex, endIndex);
 
-      MPI_Barrier(MPI_COMM_WORLD);
+      //MPI_Barrier(MPI_COMM_WORLD);
       worldaux = world1;
       world1 = world2;
       world2 = worldaux;
@@ -382,20 +380,16 @@ int main(int argc, char *argv[])
       //Each proc sends its first and last row to their neighboors
       MPI_Send(&(world1[code(startIndex, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + (comm_size - 1)) % comm_size, 0, MPI_COMM_WORLD);
       MPI_Send(&(world1[code(endIndex - 1, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + 1) % comm_size, 1, MPI_COMM_WORLD);
-      MPI_Barrier(MPI_COMM_WORLD);
 
       //Each processor recv their neighboors rows
       MPI_Status status;
       MPI_Recv(&(world1[code(startIndex - 1, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + (comm_size - 1)) % comm_size, 1, MPI_COMM_WORLD, &status);
       MPI_Recv(&(world1[code(endIndex, 0, 0, 0)]), N, MPI_UNSIGNED, (my_rank + 1) % comm_size, 0, MPI_COMM_WORLD, &status);
-      MPI_Barrier(MPI_COMM_WORLD);
 
       it++;
    };
 
-
    //Proc 0 gather all the world1 sections of each procs to be able to print the entire final world
-   MPI_Barrier(MPI_COMM_WORLD);
    MPI_Gather(&(world1[code(my_rank * loc, 0, 0, 0)]), N * loc, MPI_UNSIGNED, world2, N * loc, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
    MPI_Barrier(MPI_COMM_WORLD);
    if (my_rank == 0)

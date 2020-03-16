@@ -250,17 +250,18 @@ short newgeneration(unsigned int *world1, unsigned int *world2, int xstart, int 
    {
       for (y = 0; y < N; y++)
       {
-         //
-         // to be completed
-         //
          neighbors(x, y, world1, &nn, &n1, &n2);
          cell = read_cell(x, y, 0, 0, world1);
          if (cell != 0)
          {
             if (nn == 2 || nn == 3)
             {
-               
+
                write_cell(x, y, cell, world2);
+            }
+            else if (nn < 2 || nn > 3)
+            {
+               change = 1;
             }
          }
          else

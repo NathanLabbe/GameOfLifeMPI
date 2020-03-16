@@ -12,5 +12,5 @@ clean :
 	mkdir bin
 
 test :
-	mpirun -np 4 ./bin/PPAR_TP5_GameMPI
+	mpirun -np 2 ./bin/PPAR_TP5_GameMPI
 

@@ -1,10 +1,10 @@
 CFLAGS = -Wall -g -o 
 
 bin/Shortening: clean obj/Shortening.o
-	mpicc $(CFLAGS) bin/Shortening obj/Shortening.o
+	mpicc $(CFLAGS) bin/Shortening obj/Shortening.o 
 
 obj/Shortening.o: src/Shortening.c
-	mpicc $(CFLAGS) obj/Shortening.o -c src/Shortening.c
+	mpicc $(CFLAGS) obj/Shortening.o -c src/Shortening.c 
 
 clean :
 	rm -rf obj bin
@@ -12,5 +12,5 @@ clean :
 	mkdir bin
 
 test :
-	mpirun -np 2 ./bin/Shortening
+	mpirun -np 2 ./bin/Shortening 
 
